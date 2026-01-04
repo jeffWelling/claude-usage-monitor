@@ -114,37 +114,36 @@ struct UsageRowView: View {
     let color: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(title)
-                    .font(.headline)
-                Spacer()
-                Text("\(Int(utilization))%")
-                    .font(.headline)
-                    .monospacedDigit()
-            }
+        HStack(alignment: .center, spacing: 12) {
+            // Pie chart
+            PieChartView(
+                percentage: utilization,
+                color: color,
+                size: 40
+            )
 
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 8)
-
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(color)
-                        .frame(width: geometry.size.width * CGFloat(min(utilization, 100)) / 100, height: 8)
+            // Text info
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(title)
+                        .font(.headline)
+                    Spacer()
+                    Text("\(Int(utilization))%")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .monospacedDigit()
+                        .foregroundColor(color)
                 }
-            }
-            .frame(height: 8)
 
-            if let resetTime = resetTime {
-                Text("Resets \(resetTime, style: .relative)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            } else {
-                Text("No usage recorded")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if let resetTime = resetTime {
+                    Text("Resets \(resetTime, style: .relative)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text("No usage recorded")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
         }
         .padding(.horizontal)
