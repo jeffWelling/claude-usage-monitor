@@ -33,27 +33,29 @@ struct MenuBarLabel: View {
         let height: CGFloat = 18
 
         let image = NSImage(size: NSSize(width: totalWidth, height: height), flipped: false) { rect in
-            let fillColor = NSColor.labelColor
-            let bgColor = NSColor.labelColor.withAlphaComponent(0.25)
+            // Text uses label color (adapts to menu bar appearance)
+            let textColor = NSColor.labelColor
 
             var x: CGFloat = 0
             let pieY = (height - pieSize) / 2
 
-            // Draw first pie (5h)
-            drawPie(at: NSPoint(x: x, y: pieY), size: pieSize, percentage: fiveHour, fill: fillColor, bg: bgColor)
+            // Draw first pie (5h) with color based on usage
+            let fiveHourColor = colorForUsage(fiveHour)
+            drawPie(at: NSPoint(x: x, y: pieY), size: pieSize, percentage: fiveHour, fill: fiveHourColor)
             x += pieSize + spacing
 
             // Draw "5h" text
             let font = NSFont.systemFont(ofSize: fontSize)
             let attrs: [NSAttributedString.Key: Any] = [
                 .font: font,
-                .foregroundColor: fillColor
+                .foregroundColor: textColor
             ]
             "5h".draw(at: NSPoint(x: x, y: (height - fontSize) / 2 - 1), withAttributes: attrs)
             x += textWidth5h + groupSpacing
 
-            // Draw second pie (7d)
-            drawPie(at: NSPoint(x: x, y: pieY), size: pieSize, percentage: sevenDay, fill: fillColor, bg: bgColor)
+            // Draw second pie (7d) with color based on usage
+            let sevenDayColor = colorForUsage(sevenDay)
+            drawPie(at: NSPoint(x: x, y: pieY), size: pieSize, percentage: sevenDay, fill: sevenDayColor)
             x += pieSize + spacing
 
             // Draw "7d" text
@@ -62,19 +64,32 @@ struct MenuBarLabel: View {
             return true
         }
 
-        image.isTemplate = true
+        // Non-template to preserve colors
+        image.isTemplate = false
         return image
     }
 
-    private func drawPie(at origin: NSPoint, size: CGFloat, percentage: Double, fill: NSColor, bg: NSColor) {
-        let rect = NSRect(origin: origin, size: NSSize(width: size, height: size))
+    private func colorForUsage(_ percentage: Double) -> NSColor {
+        switch percentage {
+        case 0..<50:
+            return NSColor.systemGreen
+        case 50..<80:
+            return NSColor.systemYellow
+        default:
+            return NSColor.systemRed
+        }
+    }
 
-        // Background circle
-        let bgPath = NSBezierPath(ovalIn: rect.insetBy(dx: 1, dy: 1))
-        bg.setFill()
+    private func drawPie(at origin: NSPoint, size: CGFloat, percentage: Double, fill: NSColor) {
+        let rect = NSRect(origin: origin, size: NSSize(width: size, height: size))
+        let insetRect = rect.insetBy(dx: 1, dy: 1)
+
+        // Background circle (unfilled portion) - semi-transparent gray
+        let bgPath = NSBezierPath(ovalIn: insetRect)
+        NSColor.gray.withAlphaComponent(0.3).setFill()
         bgPath.fill()
 
-        // Pie slice
+        // Pie slice (filled portion)
         let center = NSPoint(x: rect.midX, y: rect.midY)
         let radius = (size - 2) / 2
         let startAngle: CGFloat = 90
@@ -87,5 +102,11 @@ struct MenuBarLabel: View {
 
         fill.setFill()
         piePath.fill()
+
+        // Circle outline/border using the fill color
+        let outlinePath = NSBezierPath(ovalIn: insetRect)
+        outlinePath.lineWidth = 1.0
+        fill.setStroke()
+        outlinePath.stroke()
     }
 }

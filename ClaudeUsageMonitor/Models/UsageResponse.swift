@@ -42,7 +42,8 @@ struct ExtraUsage: Codable {
 
 // Custom ISO8601 date formatter that handles fractional seconds and timezone
 extension ISO8601DateFormatter {
-    static let withFractionalSeconds: ISO8601DateFormatter = {
+    // Thread-safe: only read after initialization
+    nonisolated(unsafe) static let withFractionalSeconds: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter

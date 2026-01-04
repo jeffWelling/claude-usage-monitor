@@ -1,8 +1,21 @@
 import Foundation
 
 actor AnthropicAPI {
+    static let shared = AnthropicAPI()
+
     private let baseURL = URL(string: "https://api.anthropic.com/api/oauth/usage")!
-    private let credentialManager = CredentialManager()
+    private var credentialManager: CredentialManager { CredentialManager.shared }
+
+    private init() {}
+
+    // App identification
+    private let appVersion = "1.0.0"
+    private let userAgent = "claude-usage-monitor/1.0.0 (+https://github.com/jeffWelling/claude-usage-monitor)"
+
+    // Required beta header for OAuth usage endpoint.
+    // This may need updating if Anthropic changes their API requirements.
+    // Check Claude Code releases for updates: https://github.com/anthropics/claude-code
+    private let oauthBetaHeader = "oauth-2025-04-20"
 
     enum APIError: Error, LocalizedError {
         case invalidResponse
@@ -18,7 +31,7 @@ actor AnthropicAPI {
             case .httpError(let code):
                 return "HTTP error: \(code)"
             case .tokenExpired:
-                return "Token expired. Please restart Claude Code."
+                return "Token expired. Start a Claude Code session to refresh."
             case .networkError(let error):
                 return "Network error: \(error.localizedDescription)"
             case .decodingError(let error):
@@ -28,13 +41,23 @@ actor AnthropicAPI {
     }
 
     func fetchUsage() async throws -> UsageResponse {
-        let token = try await credentialManager.getAccessToken()
+        // Try with cached token first
+        do {
+            return try await performFetch(forceTokenRefresh: false)
+        } catch APIError.tokenExpired {
+            // Token expired - refresh from keychain and retry once
+            return try await performFetch(forceTokenRefresh: true)
+        }
+    }
+
+    private func performFetch(forceTokenRefresh: Bool) async throws -> UsageResponse {
+        let token = try await credentialManager.getAccessToken(forceRefresh: forceTokenRefresh)
 
         var request = URLRequest(url: baseURL)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("claude-code/2.0.31", forHTTPHeaderField: "User-Agent")
-        request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue(oauthBetaHeader, forHTTPHeaderField: "anthropic-beta")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
         let (data, response): (Data, URLResponse)

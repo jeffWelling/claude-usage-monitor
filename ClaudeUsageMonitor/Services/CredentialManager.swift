@@ -1,50 +1,69 @@
 import Foundation
+import Security
 
 actor CredentialManager {
+    // Singleton ensures all keychain access is serialized through one actor
+    static let shared = CredentialManager()
+
     enum CredentialError: Error, LocalizedError {
         case keychainItemNotFound
+        case keychainError(OSStatus)
         case jsonParsingFailed
         case tokenNotFound
-        case processError(Int32)
 
         var errorDescription: String? {
             switch self {
             case .keychainItemNotFound:
                 return "Claude Code credentials not found. Please ensure Claude Code is installed and logged in."
+            case .keychainError(let status):
+                let message = SecCopyErrorMessageString(status, nil) as String? ?? "Unknown error"
+                return "Keychain error: \(message) (\(status))"
             case .jsonParsingFailed:
                 return "Failed to parse credentials JSON."
             case .tokenNotFound:
                 return "OAuth token not found in credentials."
-            case .processError(let code):
-                return "Security command failed with code \(code)."
             }
         }
     }
 
-    func getAccessToken() async throws -> String {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/security")
-        process.arguments = [
-            "find-generic-password",
-            "-a", NSUserName(),
-            "-w",
-            "-s", "Claude Code-credentials"
-        ]
+    private let serviceName = "Claude Code-credentials"
+    private var cachedToken: String?
 
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = Pipe()
+    private init() {}
 
-        try process.run()
-        process.waitUntilExit()
-
-        guard process.terminationStatus == 0 else {
-            throw CredentialError.keychainItemNotFound
+    func getAccessToken(forceRefresh: Bool = false) async throws -> String {
+        if !forceRefresh, let token = cachedToken {
+            return token
         }
 
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        guard let jsonString = String(data: data, encoding: .utf8)?
-            .trimmingCharacters(in: .whitespacesAndNewlines) else {
+        let token = try fetchTokenFromKeychain()
+        cachedToken = token
+        return token
+    }
+
+    private func fetchTokenFromKeychain() throws -> String {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: NSUserName(),
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+        switch status {
+        case errSecSuccess:
+            break
+        case errSecItemNotFound:
+            throw CredentialError.keychainItemNotFound
+        default:
+            throw CredentialError.keychainError(status)
+        }
+
+        guard let data = result as? Data,
+              let jsonString = String(data: data, encoding: .utf8) else {
             throw CredentialError.jsonParsingFailed
         }
 

@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 @MainActor
 class UsageViewModel: ObservableObject {
@@ -17,7 +16,7 @@ class UsageViewModel: ObservableObject {
     @Published var state: State = .loading
     @Published var lastUpdated: Date?
 
-    private let api = AnthropicAPI()
+    private var api: AnthropicAPI { AnthropicAPI.shared }
     private var refreshTimer: Timer?
     private let refreshInterval: TimeInterval = 180 // 3 minutes
 
@@ -28,9 +27,7 @@ class UsageViewModel: ObservableObject {
         startTimer()
     }
 
-    deinit {
-        refreshTimer?.invalidate()
-    }
+    // Timer cleanup handled by system when object is deallocated
 
     func refresh() async {
         do {

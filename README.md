@@ -4,35 +4,36 @@ A macOS menu bar app that displays your Claude Code usage statistics (5-hour and
 
 ## Features
 
-- Shows current 5-hour and 7-day usage percentages in the menu bar
+- Shows current 5-hour and 7-day usage as pie chart icons in the menu bar
 - Color-coded progress bars (green < 50%, yellow 50-80%, red > 80%)
 - Displays reset times for each usage window
-- Auto-refreshes every 5 minutes
+- Auto-refreshes every 3 minutes
 - Manual refresh option
 
 ## Screenshot
 
+Menu bar shows two pie icons with labels:
 ```
-Menu Bar:  5h: 6% | 7d: 35%
+[●] 5h [●] 7d
 ```
 
 Clicking shows:
-- Progress bars for 5-hour and 7-day usage
+- Pie charts with percentages for 5-hour and 7-day usage
 - Reset countdown timers
-- Opus usage (if applicable)
+- Sonnet/Opus usage (if applicable)
 - Refresh and Quit options
 
 ## Requirements
 
 - macOS 15.0 (Tahoe) or later
 - Claude Code installed and logged in
-- Swift toolchain (included with Xcode Command Line Tools)
+- Swift toolchain (included with Xcode or Command Line Tools)
 
 ## Building
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/claude-usage-monitor.git
+git clone git@github.com:jeffWelling/claude-usage-monitor.git
 cd claude-usage-monitor
 
 # Build with Swift Package Manager
@@ -56,6 +57,22 @@ cp ClaudeUsageMonitor/Info.plist build/ClaudeUsageMonitor.app/Contents/
 # Run
 open build/ClaudeUsageMonitor.app
 ```
+
+## Creating a Release
+
+To create a versioned release with DMG and ZIP:
+
+```bash
+# Using the release script
+./scripts/release.sh 1.0.0
+
+# Or using make
+make release VERSION=1.0.0
+```
+
+This creates:
+- `build/ClaudeUsageMonitor-X.Y.Z.dmg` - Disk image with drag-to-Applications
+- `build/ClaudeUsageMonitor-X.Y.Z.zip` - Portable ZIP archive
 
 ## Installation
 
@@ -83,7 +100,7 @@ The app retrieves usage data from Anthropic's OAuth usage endpoint using your Cl
 
 - **5-Hour Usage**: Rolling 5-hour utilization percentage
 - **7-Day Usage**: Weekly utilization percentage
-- **Opus Usage**: Opus-specific 7-day utilization (if applicable)
+- **Sonnet/Opus Usage**: Model-specific 7-day utilization (if applicable)
 
 ## Data Source
 
@@ -103,7 +120,7 @@ Ensure Claude Code is installed and you're logged in. The app looks for credenti
 
 ### "Token expired"
 
-Your OAuth token has expired. Restart Claude Code to refresh it.
+Your OAuth token has expired. Start a new Claude Code session to refresh it.
 
 ### App shows "⚠️" in menu bar
 
@@ -114,6 +131,7 @@ There was an error fetching usage data. Click on the icon to see the error messa
 ```
 claude-usage-monitor/
 ├── Package.swift                 # Swift Package Manager config
+├── LICENSE                       # MIT License
 ├── ClaudeUsageMonitor/
 │   ├── ClaudeUsageMonitorApp.swift   # App entry point
 │   ├── Info.plist                    # App bundle config
@@ -125,11 +143,15 @@ claude-usage-monitor/
 │   ├── ViewModels/
 │   │   └── UsageViewModel.swift      # State management
 │   └── Views/
-│       ├── MenuBarLabel.swift        # Menu bar title
+│       ├── MenuBarLabel.swift        # Menu bar icon rendering
+│       ├── PieChartView.swift        # Pie chart components
 │       └── UsageDetailView.swift     # Dropdown content
-└── README.md
+├── scripts/
+│   ├── bundle.sh                     # Development build script
+│   └── release.sh                    # Versioned release script
+└── resources/                        # App icon (optional)
 ```
 
 ## License
 
-MIT
+MIT - See [LICENSE](LICENSE) file.
