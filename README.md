@@ -4,21 +4,32 @@ A macOS menu bar app that displays your Claude Code usage statistics (5-hour and
 
 ## Features
 
-- Shows current 5-hour and 7-day usage as pie chart icons in the menu bar
-- Color-coded progress bars (green < 50%, yellow 50-80%, red > 80%)
-- Displays reset times for each usage window
+- **Color-coded pie charts** in the menu bar showing usage percentage
+  - Green: < 50% usage
+  - Yellow: 50-80% usage
+  - Red: > 80% usage
+- **Blue time progress ring** around each pie showing elapsed time in the current window
+- Displays reset countdown timers for each usage window
 - Auto-refreshes every 3 minutes
 - Manual refresh option
 
 ## Screenshot
 
-Menu bar shows two pie icons with labels:
+Menu bar shows two pie charts with labels and time progress rings:
 ```
-[●] 5h [●] 7d
+┌───┐      ┌───┐
+│ ● │ 5h   │ ● │ 7d
+└───┘      └───┘
+  │          │
+  │          └── 7-day usage pie (colored) with time ring (blue)
+  └── 5-hour usage pie (colored) with time ring (blue)
 ```
 
+- **Inner pie**: Usage percentage (green/yellow/red based on utilization)
+- **Outer ring**: Blue arc showing time elapsed toward reset
+
 Clicking shows:
-- Pie charts with percentages for 5-hour and 7-day usage
+- Detailed pie charts with percentages for 5-hour and 7-day usage
 - Reset countdown timers
 - Sonnet/Opus usage (if applicable)
 - Refresh and Quit options

@@ -12,7 +12,9 @@ struct MenuBarLabel: View {
         case .loaded(let usage):
             Image(nsImage: renderCombinedIcon(
                 fiveHour: usage.fiveHour.utilization,
-                sevenDay: usage.sevenDay.utilization
+                fiveHourResetsAt: usage.fiveHour.resetsAt,
+                sevenDay: usage.sevenDay.utilization,
+                sevenDayResetsAt: usage.sevenDay.resetsAt
             ))
 
         case .error:
@@ -20,8 +22,8 @@ struct MenuBarLabel: View {
         }
     }
 
-    private func renderCombinedIcon(fiveHour: Double, sevenDay: Double) -> NSImage {
-        let pieSize: CGFloat = 14
+    private func renderCombinedIcon(fiveHour: Double, fiveHourResetsAt: Date?, sevenDay: Double, sevenDayResetsAt: Date?) -> NSImage {
+        let pieSize: CGFloat = 16  // Slightly larger to accommodate ring
         let fontSize: CGFloat = 10
         let spacing: CGFloat = 3
         let groupSpacing: CGFloat = 6
@@ -32,6 +34,10 @@ struct MenuBarLabel: View {
         let totalWidth = pieSize + spacing + textWidth5h + groupSpacing + pieSize + spacing + textWidth7d
         let height: CGFloat = 18
 
+        // Calculate time progress for each window
+        let fiveHourTimeProgress = timeProgress(resetsAt: fiveHourResetsAt, windowHours: 5)
+        let sevenDayTimeProgress = timeProgress(resetsAt: sevenDayResetsAt, windowHours: 24 * 7)
+
         let image = NSImage(size: NSSize(width: totalWidth, height: height), flipped: false) { rect in
             // Text uses label color (adapts to menu bar appearance)
             let textColor = NSColor.labelColor
@@ -39,9 +45,9 @@ struct MenuBarLabel: View {
             var x: CGFloat = 0
             let pieY = (height - pieSize) / 2
 
-            // Draw first pie (5h) with color based on usage
+            // Draw first pie (5h) with color based on usage and time ring
             let fiveHourColor = colorForUsage(fiveHour)
-            drawPie(at: NSPoint(x: x, y: pieY), size: pieSize, percentage: fiveHour, fill: fiveHourColor)
+            drawPie(at: NSPoint(x: x, y: pieY), size: pieSize, percentage: fiveHour, fill: fiveHourColor, timeProgress: fiveHourTimeProgress)
             x += pieSize + spacing
 
             // Draw "5h" text
@@ -53,9 +59,9 @@ struct MenuBarLabel: View {
             "5h".draw(at: NSPoint(x: x, y: (height - fontSize) / 2 - 1), withAttributes: attrs)
             x += textWidth5h + groupSpacing
 
-            // Draw second pie (7d) with color based on usage
+            // Draw second pie (7d) with color based on usage and time ring
             let sevenDayColor = colorForUsage(sevenDay)
-            drawPie(at: NSPoint(x: x, y: pieY), size: pieSize, percentage: sevenDay, fill: sevenDayColor)
+            drawPie(at: NSPoint(x: x, y: pieY), size: pieSize, percentage: sevenDay, fill: sevenDayColor, timeProgress: sevenDayTimeProgress)
             x += pieSize + spacing
 
             // Draw "7d" text
@@ -69,6 +75,21 @@ struct MenuBarLabel: View {
         return image
     }
 
+    /// Calculate how far through the time window we are (0.0 to 1.0)
+    private func timeProgress(resetsAt: Date?, windowHours: Int) -> Double {
+        guard let resetsAt = resetsAt else { return 0 }
+
+        let now = Date()
+        let timeUntilReset = resetsAt.timeIntervalSince(now)
+        let windowSeconds = Double(windowHours * 3600)
+
+        // Time elapsed = window - time remaining
+        let timeElapsed = windowSeconds - timeUntilReset
+
+        // Clamp to 0-1 range
+        return max(0, min(1, timeElapsed / windowSeconds))
+    }
+
     private func colorForUsage(_ percentage: Double) -> NSColor {
         switch percentage {
         case 0..<50:
@@ -80,33 +101,53 @@ struct MenuBarLabel: View {
         }
     }
 
-    private func drawPie(at origin: NSPoint, size: CGFloat, percentage: Double, fill: NSColor) {
+    private func drawPie(at origin: NSPoint, size: CGFloat, percentage: Double, fill: NSColor, timeProgress: Double) {
         let rect = NSRect(origin: origin, size: NSSize(width: size, height: size))
-        let insetRect = rect.insetBy(dx: 1, dy: 1)
+
+        // Leave room for the outer time ring
+        let ringWidth: CGFloat = 2
+        let pieRect = rect.insetBy(dx: ringWidth, dy: ringWidth)
 
         // Background circle (unfilled portion) - semi-transparent gray
-        let bgPath = NSBezierPath(ovalIn: insetRect)
+        let bgPath = NSBezierPath(ovalIn: pieRect)
         NSColor.gray.withAlphaComponent(0.3).setFill()
         bgPath.fill()
 
         // Pie slice (filled portion)
-        let center = NSPoint(x: rect.midX, y: rect.midY)
-        let radius = (size - 2) / 2
+        let pieCenter = NSPoint(x: pieRect.midX, y: pieRect.midY)
+        let pieRadius = pieRect.width / 2
         let startAngle: CGFloat = 90
         let endAngle: CGFloat = 90 - (360 * CGFloat(min(percentage, 100)) / 100)
 
         let piePath = NSBezierPath()
-        piePath.move(to: center)
-        piePath.appendArc(withCenter: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
+        piePath.move(to: pieCenter)
+        piePath.appendArc(withCenter: pieCenter, radius: pieRadius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
         piePath.close()
 
         fill.setFill()
         piePath.fill()
 
         // Circle outline/border using the fill color
-        let outlinePath = NSBezierPath(ovalIn: insetRect)
-        outlinePath.lineWidth = 1.0
+        let outlinePath = NSBezierPath(ovalIn: pieRect)
+        outlinePath.lineWidth = 0.5
         fill.setStroke()
         outlinePath.stroke()
+
+        // Outer time progress ring (blue arc)
+        if timeProgress > 0 {
+            let ringCenter = NSPoint(x: rect.midX, y: rect.midY)
+            let ringRadius = (size - ringWidth) / 2
+
+            let ringStartAngle: CGFloat = 90
+            let ringEndAngle: CGFloat = 90 - (360 * CGFloat(timeProgress))
+
+            let ringPath = NSBezierPath()
+            ringPath.appendArc(withCenter: ringCenter, radius: ringRadius, startAngle: ringStartAngle, endAngle: ringEndAngle, clockwise: true)
+            ringPath.lineWidth = ringWidth
+            ringPath.lineCapStyle = .round
+
+            NSColor.systemBlue.setStroke()
+            ringPath.stroke()
+        }
     }
 }
