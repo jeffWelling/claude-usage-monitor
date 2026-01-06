@@ -3,6 +3,7 @@ import AppKit
 
 struct MenuBarLabel: View {
     @ObservedObject var viewModel: UsageViewModel
+    @ObservedObject var settingsManager: SettingsManager
 
     var body: some View {
         switch viewModel.state {
@@ -38,6 +39,12 @@ struct MenuBarLabel: View {
         let fiveHourTimeProgress = timeProgress(resetsAt: fiveHourResetsAt, windowHours: 5)
         let sevenDayTimeProgress = timeProgress(resetsAt: sevenDayResetsAt, windowHours: 24 * 7)
 
+        // Get colors from settings
+        let fiveHourColor = settingsManager.settings.nsColorForUtilization(fiveHour, metric: .fiveHour)
+        let sevenDayColor = settingsManager.settings.nsColorForUtilization(sevenDay, metric: .sevenDay)
+        let timeRingColor = settingsManager.settings.colors.timeRing.nsColor
+        let outlineColor = settingsManager.settings.colors.outline.nsColor
+
         let image = NSImage(size: NSSize(width: totalWidth, height: height), flipped: false) { rect in
             // Text uses label color (adapts to menu bar appearance)
             let textColor = NSColor.labelColor
@@ -46,8 +53,15 @@ struct MenuBarLabel: View {
             let pieY = (height - pieSize) / 2
 
             // Draw first pie (5h) with color based on usage and time ring
-            let fiveHourColor = colorForUsage(fiveHour)
-            drawPie(at: NSPoint(x: x, y: pieY), size: pieSize, percentage: fiveHour, fill: fiveHourColor, timeProgress: fiveHourTimeProgress)
+            drawPie(
+                at: NSPoint(x: x, y: pieY),
+                size: pieSize,
+                percentage: fiveHour,
+                fill: fiveHourColor,
+                timeProgress: fiveHourTimeProgress,
+                timeRingColor: timeRingColor,
+                outlineColor: outlineColor
+            )
             x += pieSize + spacing
 
             // Draw "5h" text
@@ -60,8 +74,15 @@ struct MenuBarLabel: View {
             x += textWidth5h + groupSpacing
 
             // Draw second pie (7d) with color based on usage and time ring
-            let sevenDayColor = colorForUsage(sevenDay)
-            drawPie(at: NSPoint(x: x, y: pieY), size: pieSize, percentage: sevenDay, fill: sevenDayColor, timeProgress: sevenDayTimeProgress)
+            drawPie(
+                at: NSPoint(x: x, y: pieY),
+                size: pieSize,
+                percentage: sevenDay,
+                fill: sevenDayColor,
+                timeProgress: sevenDayTimeProgress,
+                timeRingColor: timeRingColor,
+                outlineColor: outlineColor
+            )
             x += pieSize + spacing
 
             // Draw "7d" text
@@ -90,18 +111,15 @@ struct MenuBarLabel: View {
         return max(0, min(1, timeElapsed / windowSeconds))
     }
 
-    private func colorForUsage(_ percentage: Double) -> NSColor {
-        switch percentage {
-        case 0..<50:
-            return NSColor.systemGreen
-        case 50..<80:
-            return NSColor.systemYellow
-        default:
-            return NSColor.systemRed
-        }
-    }
-
-    private func drawPie(at origin: NSPoint, size: CGFloat, percentage: Double, fill: NSColor, timeProgress: Double) {
+    private func drawPie(
+        at origin: NSPoint,
+        size: CGFloat,
+        percentage: Double,
+        fill: NSColor,
+        timeProgress: Double,
+        timeRingColor: NSColor,
+        outlineColor: NSColor
+    ) {
         let rect = NSRect(origin: origin, size: NSSize(width: size, height: size))
 
         // Leave room for the outer time ring
@@ -127,13 +145,13 @@ struct MenuBarLabel: View {
         fill.setFill()
         piePath.fill()
 
-        // Circle outline/border using the fill color
+        // Circle outline/border
         let outlinePath = NSBezierPath(ovalIn: pieRect)
         outlinePath.lineWidth = 0.5
-        fill.setStroke()
+        outlineColor.setStroke()
         outlinePath.stroke()
 
-        // Outer time progress ring (blue arc)
+        // Outer time progress ring
         if timeProgress > 0 {
             let ringCenter = NSPoint(x: rect.midX, y: rect.midY)
             let ringRadius = (size - ringWidth) / 2
@@ -146,7 +164,7 @@ struct MenuBarLabel: View {
             ringPath.lineWidth = ringWidth
             ringPath.lineCapStyle = .round
 
-            NSColor.systemBlue.setStroke()
+            timeRingColor.setStroke()
             ringPath.stroke()
         }
     }

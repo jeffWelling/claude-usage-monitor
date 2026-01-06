@@ -15,6 +15,13 @@
 		A1000006 /* MenuBarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000006 /* MenuBarLabel.swift */; };
 		A1000007 /* UsageDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000007 /* UsageDetailView.swift */; };
 		A1000008 /* PieChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000009 /* PieChartView.swift */; };
+		A1000010 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000010 /* Settings.swift */; };
+		A1000011 /* TokenHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* TokenHistory.swift */; };
+		A1000012 /* ClaudeLogReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000012 /* ClaudeLogReader.swift */; };
+		A1000013 /* ScriptRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000013 /* ScriptRunner.swift */; };
+		A1000014 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000014 /* SettingsView.swift */; };
+		A1000015 /* TokenHistoryGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000015 /* TokenHistoryGraph.swift */; };
+		A1000016 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000016 /* SettingsWindowController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +34,13 @@
 		A2000007 /* UsageDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageDetailView.swift; sourceTree = "<group>"; };
 		A2000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A2000009 /* PieChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieChartView.swift; sourceTree = "<group>"; };
+		A2000010 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		A2000011 /* TokenHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenHistory.swift; sourceTree = "<group>"; };
+		A2000012 /* ClaudeLogReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeLogReader.swift; sourceTree = "<group>"; };
+		A2000013 /* ScriptRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptRunner.swift; sourceTree = "<group>"; };
+		A2000014 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A2000015 /* TokenHistoryGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenHistoryGraph.swift; sourceTree = "<group>"; };
+		A2000016 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		A3000001 /* ClaudeUsageMonitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClaudeUsageMonitor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -73,6 +87,8 @@
 		A5000004 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A2000010 /* Settings.swift */,
+				A2000011 /* TokenHistory.swift */,
 				A2000002 /* UsageResponse.swift */,
 			);
 			path = Models;
@@ -81,8 +97,10 @@
 		A5000005 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				A2000003 /* CredentialManager.swift */,
 				A2000004 /* AnthropicAPI.swift */,
+				A2000012 /* ClaudeLogReader.swift */,
+				A2000003 /* CredentialManager.swift */,
+				A2000013 /* ScriptRunner.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -100,6 +118,9 @@
 			children = (
 				A2000006 /* MenuBarLabel.swift */,
 				A2000009 /* PieChartView.swift */,
+				A2000014 /* SettingsView.swift */,
+				A2000016 /* SettingsWindowController.swift */,
+				A2000015 /* TokenHistoryGraph.swift */,
 				A2000007 /* UsageDetailView.swift */,
 			);
 			path = Views;
@@ -170,6 +191,13 @@
 				A1000006 /* MenuBarLabel.swift in Sources */,
 				A1000007 /* UsageDetailView.swift in Sources */,
 				A1000008 /* PieChartView.swift in Sources */,
+				A1000010 /* Settings.swift in Sources */,
+				A1000011 /* TokenHistory.swift in Sources */,
+				A1000012 /* ClaudeLogReader.swift in Sources */,
+				A1000013 /* ScriptRunner.swift in Sources */,
+				A1000014 /* SettingsView.swift in Sources */,
+				A1000015 /* TokenHistoryGraph.swift in Sources */,
+				A1000016 /* SettingsWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

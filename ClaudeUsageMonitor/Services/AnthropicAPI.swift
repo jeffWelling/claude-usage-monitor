@@ -17,6 +17,9 @@ actor AnthropicAPI {
     // Check Claude Code releases for updates: https://github.com/anthropics/claude-code
     private let oauthBetaHeader = "oauth-2025-04-20"
 
+    // Track if token is known to be expired to avoid repeated keychain prompts
+    private var tokenKnownExpired = false
+
     enum APIError: Error, LocalizedError {
         case invalidResponse
         case httpError(Int)
@@ -40,13 +43,31 @@ actor AnthropicAPI {
         }
     }
 
+    /// Reset the expired token flag - call when user manually refreshes
+    func resetTokenState() {
+        tokenKnownExpired = false
+    }
+
     func fetchUsage() async throws -> UsageResponse {
+        // If token is known to be expired, fail immediately without prompting keychain
+        if tokenKnownExpired {
+            throw APIError.tokenExpired
+        }
+
         // Try with cached token first
         do {
-            return try await performFetch(forceTokenRefresh: false)
+            let result = try await performFetch(forceTokenRefresh: false)
+            return result
         } catch APIError.tokenExpired {
             // Token expired - refresh from keychain and retry once
-            return try await performFetch(forceTokenRefresh: true)
+            do {
+                let result = try await performFetch(forceTokenRefresh: true)
+                return result
+            } catch APIError.tokenExpired {
+                // Still expired after refresh - mark as known expired to avoid future prompts
+                tokenKnownExpired = true
+                throw APIError.tokenExpired
+            }
         }
     }
 
@@ -73,6 +94,8 @@ actor AnthropicAPI {
 
         switch httpResponse.statusCode {
         case 200:
+            // Success - clear the expired flag in case it was set
+            tokenKnownExpired = false
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601WithFractionalSeconds
             do {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UsageDetailView: View {
     @ObservedObject var viewModel: UsageViewModel
+    @ObservedObject var settingsManager: SettingsManager
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -20,7 +21,10 @@ struct UsageDetailView: View {
                     title: "5-Hour Usage",
                     utilization: usage.fiveHour.utilization,
                     resetTime: usage.fiveHour.resetsAt,
-                    color: colorForUtilization(usage.fiveHour.utilization)
+                    color: settingsManager.settings.colorForUtilization(usage.fiveHour.utilization, metric: .fiveHour),
+                    timeProgress: timeProgress(resetsAt: usage.fiveHour.resetsAt, windowHours: 5),
+                    timeRingColor: settingsManager.settings.colors.timeRing.color,
+                    outlineColor: settingsManager.settings.colors.outline.color
                 )
 
                 Divider()
@@ -29,7 +33,10 @@ struct UsageDetailView: View {
                     title: "7-Day Usage",
                     utilization: usage.sevenDay.utilization,
                     resetTime: usage.sevenDay.resetsAt,
-                    color: colorForUtilization(usage.sevenDay.utilization)
+                    color: settingsManager.settings.colorForUtilization(usage.sevenDay.utilization, metric: .sevenDay),
+                    timeProgress: timeProgress(resetsAt: usage.sevenDay.resetsAt, windowHours: 24 * 7),
+                    timeRingColor: settingsManager.settings.colors.timeRing.color,
+                    outlineColor: settingsManager.settings.colors.outline.color
                 )
 
                 if let sonnet = usage.sevenDaySonnet, (sonnet.utilization > 0 || sonnet.resetsAt != nil) {
@@ -38,7 +45,10 @@ struct UsageDetailView: View {
                         title: "Sonnet (7-Day)",
                         utilization: sonnet.utilization,
                         resetTime: sonnet.resetsAt,
-                        color: colorForUtilization(sonnet.utilization)
+                        color: settingsManager.settings.colorForUtilization(sonnet.utilization, metric: .sevenDay),
+                        timeProgress: timeProgress(resetsAt: sonnet.resetsAt, windowHours: 24 * 7),
+                        timeRingColor: settingsManager.settings.colors.timeRing.color,
+                        outlineColor: settingsManager.settings.colors.outline.color
                     )
                 }
 
@@ -48,7 +58,10 @@ struct UsageDetailView: View {
                         title: "Opus (7-Day)",
                         utilization: opus.utilization,
                         resetTime: opus.resetsAt,
-                        color: colorForUtilization(opus.utilization)
+                        color: settingsManager.settings.colorForUtilization(opus.utilization, metric: .sevenDay),
+                        timeProgress: timeProgress(resetsAt: opus.resetsAt, windowHours: 24 * 7),
+                        timeRingColor: settingsManager.settings.colors.timeRing.color,
+                        outlineColor: settingsManager.settings.colors.outline.color
                     )
                 }
 
@@ -59,9 +72,19 @@ struct UsageDetailView: View {
                     Text(message)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding()
             }
+
+            Divider()
+
+            // Token History Graph
+            TokenHistoryGraph(
+                dataPoints: viewModel.tokenHistory,
+                timeWindowHours: settingsManager.settings.graph.timeWindowHours
+            )
+            .padding(.horizontal)
 
             Divider()
 
@@ -74,13 +97,19 @@ struct UsageDetailView: View {
 
             Button(action: {
                 Task {
-                    await viewModel.refresh()
+                    await viewModel.manualRefresh()
                 }
             }) {
                 Label("Refresh Now", systemImage: "arrow.clockwise")
             }
             .disabled(viewModel.state.isLoading)
             .padding(.horizontal)
+
+            Divider()
+
+            // Settings Section
+            SettingsView(settingsManager: settingsManager)
+                .padding(.horizontal)
 
             Divider()
 
@@ -92,18 +121,22 @@ struct UsageDetailView: View {
             .padding(.bottom, 8)
         }
         .padding(.top, 12)
-        .frame(width: 280)
+        .frame(width: 300)
     }
 
-    private func colorForUtilization(_ value: Double) -> Color {
-        switch value {
-        case 0..<50:
-            return .green
-        case 50..<80:
-            return .yellow
-        default:
-            return .red
-        }
+    /// Calculate how far through the time window we are (0.0 to 1.0)
+    private func timeProgress(resetsAt: Date?, windowHours: Int) -> Double {
+        guard let resetsAt = resetsAt else { return 0 }
+
+        let now = Date()
+        let timeUntilReset = resetsAt.timeIntervalSince(now)
+        let windowSeconds = Double(windowHours * 3600)
+
+        // Time elapsed = window - time remaining
+        let timeElapsed = windowSeconds - timeUntilReset
+
+        // Clamp to 0-1 range
+        return max(0, min(1, timeElapsed / windowSeconds))
     }
 }
 
@@ -112,14 +145,20 @@ struct UsageRowView: View {
     let utilization: Double
     let resetTime: Date?
     let color: Color
+    var timeProgress: Double = 0
+    var timeRingColor: Color = .blue
+    var outlineColor: Color = Color.gray.opacity(0.3)
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            // Pie chart
+            // Pie chart with time progress ring
             PieChartView(
                 percentage: utilization,
                 color: color,
-                size: 40
+                size: 44,
+                timeProgress: timeProgress,
+                timeRingColor: timeRingColor,
+                outlineColor: outlineColor
             )
 
             // Text info
