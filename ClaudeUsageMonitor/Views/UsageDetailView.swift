@@ -22,6 +22,7 @@ struct UsageDetailView: View {
                     utilization: usage.fiveHour.utilization,
                     resetTime: usage.fiveHour.resetsAt,
                     color: settingsManager.settings.colorForUtilization(usage.fiveHour.utilization, metric: .fiveHour),
+                    textColor: settingsManager.settings.colors.percentText?.color,
                     timeProgress: timeProgress(resetsAt: usage.fiveHour.resetsAt, windowHours: 5),
                     timeRingColor: settingsManager.settings.colors.timeRing.color,
                     outlineColor: settingsManager.settings.colors.outline.color
@@ -34,6 +35,7 @@ struct UsageDetailView: View {
                     utilization: usage.sevenDay.utilization,
                     resetTime: usage.sevenDay.resetsAt,
                     color: settingsManager.settings.colorForUtilization(usage.sevenDay.utilization, metric: .sevenDay),
+                    textColor: settingsManager.settings.colors.percentText?.color,
                     timeProgress: timeProgress(resetsAt: usage.sevenDay.resetsAt, windowHours: 24 * 7),
                     timeRingColor: settingsManager.settings.colors.timeRing.color,
                     outlineColor: settingsManager.settings.colors.outline.color
@@ -46,6 +48,7 @@ struct UsageDetailView: View {
                         utilization: sonnet.utilization,
                         resetTime: sonnet.resetsAt,
                         color: settingsManager.settings.colorForUtilization(sonnet.utilization, metric: .sevenDay),
+                        textColor: settingsManager.settings.colors.percentText?.color,
                         timeProgress: timeProgress(resetsAt: sonnet.resetsAt, windowHours: 24 * 7),
                         timeRingColor: settingsManager.settings.colors.timeRing.color,
                         outlineColor: settingsManager.settings.colors.outline.color
@@ -59,6 +62,7 @@ struct UsageDetailView: View {
                         utilization: opus.utilization,
                         resetTime: opus.resetsAt,
                         color: settingsManager.settings.colorForUtilization(opus.utilization, metric: .sevenDay),
+                        textColor: settingsManager.settings.colors.percentText?.color,
                         timeProgress: timeProgress(resetsAt: opus.resetsAt, windowHours: 24 * 7),
                         timeRingColor: settingsManager.settings.colors.timeRing.color,
                         outlineColor: settingsManager.settings.colors.outline.color
@@ -145,6 +149,7 @@ struct UsageRowView: View {
     let utilization: Double
     let resetTime: Date?
     let color: Color
+    var textColor: Color?  // nil = use pie chart color
     var timeProgress: Double = 0
     var timeRingColor: Color = .blue
     var outlineColor: Color = Color.gray.opacity(0.3)
@@ -171,7 +176,7 @@ struct UsageRowView: View {
                         .font(.title2)
                         .fontWeight(.semibold)
                         .monospacedDigit()
-                        .foregroundColor(color)
+                        .foregroundColor(textColor ?? color)
                 }
 
                 if let resetTime = resetTime {

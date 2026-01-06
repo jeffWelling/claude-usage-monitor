@@ -150,7 +150,41 @@ struct SettingsWindowContent: View {
                 colorPicker("Outline", binding: colorBinding(\.outline))
                 colorPicker("Time Ring", binding: colorBinding(\.timeRing))
             }
+
+            HStack(spacing: 8) {
+                Toggle(isOn: percentTextEnabled) {
+                    Text("Custom % text")
+                }
+                .toggleStyle(.checkbox)
+
+                if settingsManager.settings.colors.percentText != nil {
+                    ColorPicker("", selection: percentTextColorBinding)
+                        .labelsHidden()
+                }
+            }
         }
+    }
+
+    private var percentTextEnabled: Binding<Bool> {
+        Binding(
+            get: { settingsManager.settings.colors.percentText != nil },
+            set: { enabled in
+                if enabled {
+                    settingsManager.settings.colors.percentText = .systemBlue
+                } else {
+                    settingsManager.settings.colors.percentText = nil
+                }
+            }
+        )
+    }
+
+    private var percentTextColorBinding: Binding<Color> {
+        Binding(
+            get: { settingsManager.settings.colors.percentText?.color ?? .blue },
+            set: { newColor in
+                settingsManager.settings.colors.percentText = CodableColor(color: newColor)
+            }
+        )
     }
 
     private func colorPicker(_ label: String, binding: Binding<Color>) -> some View {

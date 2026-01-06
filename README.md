@@ -1,17 +1,39 @@
 # Claude Usage Monitor
 
-A macOS menu bar app that displays your Claude Code usage statistics (5-hour and 7-day utilization).
+A macOS menu bar app that displays your Claude Code usage statistics (5-hour and 7-day utilization) with configurable colors, thresholds, and automation.
+
+## How It Works
+
+Claude Usage Monitor reads your OAuth token from the macOS Keychain (stored by Claude Code) and queries the Anthropic usage API to display your current usage. It also parses Claude Code's local log files to show token consumption history.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   macOS Keychain ──► OAuth Token ──► Anthropic Usage API   │
+│                                              │              │
+│   ~/.claude/projects/**/*.jsonl ◄──── Token History        │
+│                                              │              │
+│                                              ▼              │
+│                                    ┌─────────────────┐      │
+│                                    │  Menu Bar App   │      │
+│                                    │  [●] 5h  [●] 7d │      │
+│                                    └─────────────────┘      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## Features
 
 - **Color-coded pie charts** in the menu bar showing usage percentage
-  - Green: < 50% usage
-  - Yellow: 50-80% usage
-  - Red: > 80% usage
-- **Blue time progress ring** around each pie showing elapsed time in the current window
-- Displays reset countdown timers for each usage window
+  - Configurable thresholds per metric (5-hour vs 7-day)
+  - Configurable colors (green, yellow, red, outline, time ring, percent text)
+- **Time progress ring** around each pie showing elapsed time in the current window
+- **Token usage history graph** from Claude Code logs (configurable time window)
+- **Automation**: Run a script when usage thresholds are met (e.g., "use remaining tokens before reset")
+- Reset countdown timers for each usage window
 - Auto-refreshes every 3 minutes
 - Manual refresh option
+- Settings window for full customization
 
 ## Screenshot
 
@@ -105,23 +127,20 @@ xattr -cr ClaudeUsageMonitor.app
 open ClaudeUsageMonitor.app
 ```
 
-## How It Works
+## Data Sources
 
-The app retrieves usage data from Anthropic's OAuth usage endpoint using your Claude Code credentials stored in the macOS Keychain. It displays:
-
-- **5-Hour Usage**: Rolling 5-hour utilization percentage
-- **7-Day Usage**: Weekly utilization percentage
-- **Sonnet/Opus Usage**: Model-specific 7-day utilization (if applicable)
-
-## Data Source
-
-The app reads your OAuth token from the macOS Keychain (stored by Claude Code) and queries:
+**Usage API**: The app reads your OAuth token from the macOS Keychain (stored by Claude Code) and queries:
 
 ```
 GET https://api.anthropic.com/api/oauth/usage
 ```
 
-This is the same endpoint that Claude Code's `/status` command uses.
+This is the same endpoint that Claude Code's `/status` command uses. Displays:
+- **5-Hour Usage**: Rolling 5-hour utilization percentage
+- **7-Day Usage**: Weekly utilization percentage
+- **Sonnet/Opus Usage**: Model-specific 7-day utilization (if applicable)
+
+**Token History**: Parsed from Claude Code's local JSONL log files at `~/.claude/projects/**/*.jsonl` to show token consumption over time.
 
 ## Troubleshooting
 
@@ -147,15 +166,22 @@ claude-usage-monitor/
 │   ├── ClaudeUsageMonitorApp.swift   # App entry point
 │   ├── Info.plist                    # App bundle config
 │   ├── Models/
+│   │   ├── Settings.swift            # Configurable settings & persistence
+│   │   ├── TokenHistory.swift        # Token usage data models
 │   │   └── UsageResponse.swift       # API response models
 │   ├── Services/
 │   │   ├── AnthropicAPI.swift        # API client
-│   │   └── CredentialManager.swift   # Keychain access
+│   │   ├── ClaudeLogReader.swift     # Parse Claude Code logs for history
+│   │   ├── CredentialManager.swift   # Keychain access
+│   │   └── ScriptRunner.swift        # Automation script execution
 │   ├── ViewModels/
 │   │   └── UsageViewModel.swift      # State management
 │   └── Views/
 │       ├── MenuBarLabel.swift        # Menu bar icon rendering
 │       ├── PieChartView.swift        # Pie chart components
+│       ├── SettingsView.swift        # Settings button
+│       ├── SettingsWindowController.swift  # Settings popup window
+│       ├── TokenHistoryGraph.swift   # Token usage chart
 │       └── UsageDetailView.swift     # Dropdown content
 ├── scripts/
 │   ├── bundle.sh                     # Development build script

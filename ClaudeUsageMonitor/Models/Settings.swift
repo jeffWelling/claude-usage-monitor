@@ -64,13 +64,15 @@ struct ColorSettings: Codable, Equatable {
     var red: CodableColor
     var outline: CodableColor
     var timeRing: CodableColor
+    var percentText: CodableColor?  // nil = use pie chart color
 
     static let `default` = ColorSettings(
         green: .systemGreen,
         yellow: .systemYellow,
         red: .systemRed,
         outline: .grayOutline,
-        timeRing: .systemBlue
+        timeRing: .systemBlue,
+        percentText: nil
     )
 }
 
