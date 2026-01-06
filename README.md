@@ -35,6 +35,10 @@ Claude Usage Monitor reads your OAuth token from the macOS Keychain (stored by C
 - Manual refresh option
 - Settings window for full customization
 
+## Screenshot
+
+![Claude Usage Monitor](resources/screenshot.png)
+
 ## Requirements
 
 - macOS 15.0 (Tahoe) or later
