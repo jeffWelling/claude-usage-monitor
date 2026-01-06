@@ -112,28 +112,57 @@ struct AppSettings: Codable, Equatable {
     )
 
     /// Get color for a utilization value based on metric thresholds
+    /// Handles any threshold ordering (red can be below yellow for inverted behavior)
     func colorForUtilization(_ value: Double, metric: MetricType) -> Color {
         let thresholds = metric == .fiveHour ? fiveHour : sevenDay
-        switch value {
-        case 0..<thresholds.yellowThreshold:
-            return colors.green.color
-        case thresholds.yellowThreshold..<thresholds.redThreshold:
-            return colors.yellow.color
-        default:
-            return colors.red.color
+        let yellow = thresholds.yellowThreshold
+        let red = thresholds.redThreshold
+
+        // Handle normal ordering: green -> yellow -> red
+        if yellow <= red {
+            if value < yellow {
+                return colors.green.color
+            } else if value < red {
+                return colors.yellow.color
+            } else {
+                return colors.red.color
+            }
+        } else {
+            // Inverted ordering: green -> red -> yellow (red triggers before yellow)
+            if value < red {
+                return colors.green.color
+            } else if value < yellow {
+                return colors.red.color
+            } else {
+                return colors.yellow.color
+            }
         }
     }
 
     /// Get NSColor for a utilization value (for menu bar rendering)
     func nsColorForUtilization(_ value: Double, metric: MetricType) -> NSColor {
         let thresholds = metric == .fiveHour ? fiveHour : sevenDay
-        switch value {
-        case 0..<thresholds.yellowThreshold:
-            return colors.green.nsColor
-        case thresholds.yellowThreshold..<thresholds.redThreshold:
-            return colors.yellow.nsColor
-        default:
-            return colors.red.nsColor
+        let yellow = thresholds.yellowThreshold
+        let red = thresholds.redThreshold
+
+        // Handle normal ordering: green -> yellow -> red
+        if yellow <= red {
+            if value < yellow {
+                return colors.green.nsColor
+            } else if value < red {
+                return colors.yellow.nsColor
+            } else {
+                return colors.red.nsColor
+            }
+        } else {
+            // Inverted ordering: green -> red -> yellow (red triggers before yellow)
+            if value < red {
+                return colors.green.nsColor
+            } else if value < yellow {
+                return colors.red.nsColor
+            } else {
+                return colors.yellow.nsColor
+            }
         }
     }
 }
