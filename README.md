@@ -35,27 +35,6 @@ Claude Usage Monitor reads your OAuth token from the macOS Keychain (stored by C
 - Manual refresh option
 - Settings window for full customization
 
-## Screenshot
-
-Menu bar shows two pie charts with labels and time progress rings:
-```
-┌───┐      ┌───┐
-│ ● │ 5h   │ ● │ 7d
-└───┘      └───┘
-  │          │
-  │          └── 7-day usage pie (colored) with time ring (blue)
-  └── 5-hour usage pie (colored) with time ring (blue)
-```
-
-- **Inner pie**: Usage percentage (green/yellow/red based on utilization)
-- **Outer ring**: Blue arc showing time elapsed toward reset
-
-Clicking shows:
-- Detailed pie charts with percentages for 5-hour and 7-day usage
-- Reset countdown timers
-- Sonnet/Opus usage (if applicable)
-- Refresh and Quit options
-
 ## Requirements
 
 - macOS 15.0 (Tahoe) or later
