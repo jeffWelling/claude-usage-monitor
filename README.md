@@ -41,7 +41,7 @@ Claude Usage Monitor reads your OAuth token from the macOS Keychain (stored by C
 
 ## Requirements
 
-- macOS 15.0 (Tahoe) or later
+- macOS 15.0 (Sequoia) or later
 - Claude Code installed and logged in
 - Swift toolchain (included with Xcode or Command Line Tools)
 
@@ -138,6 +138,20 @@ Your OAuth token has expired. Start a new Claude Code session to refresh it.
 ### App shows "⚠️" in menu bar
 
 There was an error fetching usage data. Click on the icon to see the error message.
+
+### Manually retrieving the OAuth token
+
+To retrieve the Claude Code credentials from the Keychain via CLI:
+
+```bash
+security find-generic-password -s "Claude Code-credentials" -a "$USER" -w
+```
+
+This returns the raw JSON stored by Claude Code. To extract just the access token:
+
+```bash
+security find-generic-password -s "Claude Code-credentials" -a "$USER" -w | jq -r '.claudeAiOauth.accessToken'
+```
 
 ## Project Structure
 
