@@ -32,24 +32,17 @@ struct TokenHistoryGraph: View {
 
     private var chart: some View {
         Chart(dataPoints) { point in
-            AreaMark(
+            BarMark(
                 x: .value("Time", point.timestamp),
                 y: .value("Tokens", point.totalTokens)
             )
             .foregroundStyle(
                 LinearGradient(
-                    colors: [Color.blue.opacity(0.6), Color.blue.opacity(0.1)],
+                    colors: [Color.blue.opacity(0.8), Color.blue.opacity(0.4)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
             )
-
-            LineMark(
-                x: .value("Time", point.timestamp),
-                y: .value("Tokens", point.totalTokens)
-            )
-            .foregroundStyle(Color.blue)
-            .lineStyle(StrokeStyle(lineWidth: 1.5))
         }
         .chartXAxis {
             AxisMarks(values: .automatic(desiredCount: 4)) { value in
