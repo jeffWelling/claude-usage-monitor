@@ -42,13 +42,13 @@ class UsageViewModel: ObservableObject {
         isRefreshing = true
         defer { isRefreshing = false }
 
+        // Always refresh token history (reads local files, no API needed)
+        await refreshTokenHistory()
+
         do {
             let usage = try await api.fetchUsage()
             state = .loaded(usage)
             lastUpdated = Date()
-
-            // Refresh token history
-            await refreshTokenHistory()
 
             // Check automation trigger
             await checkAutomationTrigger(usage: usage)

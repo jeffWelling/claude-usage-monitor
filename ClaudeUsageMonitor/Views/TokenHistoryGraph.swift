@@ -33,8 +33,9 @@ struct TokenHistoryGraph: View {
     private var chart: some View {
         Chart(dataPoints) { point in
             BarMark(
-                x: .value("Time", point.timestamp),
-                y: .value("Tokens", point.totalTokens)
+                x: .value("Time", point.timestamp, unit: .minute),
+                y: .value("Tokens", point.totalTokens),
+                width: .fixed(6)
             )
             .foregroundStyle(
                 LinearGradient(
