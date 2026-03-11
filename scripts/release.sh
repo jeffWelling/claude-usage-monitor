@@ -3,12 +3,13 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-# Get version from argument or prompt
+# Get version from argument, AppVersion.swift, or prompt
 VERSION="${1:-}"
 if [ -z "$VERSION" ]; then
-    # Try to get latest git tag
-    LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-    echo "Latest tag: $LATEST_TAG"
+    # Read from AppVersion.swift (single source of truth)
+    VERSION=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' ClaudeUsageMonitor/AppVersion.swift)
+fi
+if [ -z "$VERSION" ]; then
     read -p "Enter version (e.g., 1.0.0): " VERSION
 fi
 

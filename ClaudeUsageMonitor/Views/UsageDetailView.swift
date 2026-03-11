@@ -117,10 +117,16 @@ struct UsageDetailView: View {
 
             Divider()
 
-            Button("Quit") {
-                NSApplication.shared.terminate(nil)
+            HStack {
+                Text("v\(AppVersion.current)")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                Spacer()
+                Button("Quit") {
+                    NSApplication.shared.terminate(nil)
+                }
+                .keyboardShortcut("q")
             }
-            .keyboardShortcut("q")
             .padding(.horizontal)
             .padding(.bottom, 8)
         }
