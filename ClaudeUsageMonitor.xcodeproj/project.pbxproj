@@ -22,6 +22,7 @@
 		A1000014 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000014 /* SettingsView.swift */; };
 		A1000015 /* TokenHistoryGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000015 /* TokenHistoryGraph.swift */; };
 		A1000016 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000016 /* SettingsWindowController.swift */; };
+		A1000017 /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000017 /* AppVersion.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +42,7 @@
 		A2000014 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A2000015 /* TokenHistoryGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenHistoryGraph.swift; sourceTree = "<group>"; };
 		A2000016 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
+		A2000017 /* AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
 		A3000001 /* ClaudeUsageMonitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClaudeUsageMonitor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -66,6 +68,7 @@
 		A5000002 /* ClaudeUsageMonitor */ = {
 			isa = PBXGroup;
 			children = (
+				A2000017 /* AppVersion.swift */,
 				A2000001 /* ClaudeUsageMonitorApp.swift */,
 				A2000008 /* Info.plist */,
 				A5000004 /* Models */,
@@ -198,6 +201,7 @@
 				A1000014 /* SettingsView.swift in Sources */,
 				A1000015 /* TokenHistoryGraph.swift in Sources */,
 				A1000016 /* SettingsWindowController.swift in Sources */,
+				A1000017 /* AppVersion.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
