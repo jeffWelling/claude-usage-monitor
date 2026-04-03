@@ -54,17 +54,18 @@ actor AnthropicAPI {
             throw APIError.tokenExpired
         }
 
-        // Try with cached token first
+        // Try with cached token first (disk or memory — no keychain prompt)
         do {
             let result = try await performFetch(forceTokenRefresh: false)
             return result
         } catch APIError.tokenExpired {
-            // Token expired - refresh from keychain and retry once
+            // Cached token expired — clear disk cache and retry from keychain
+            await credentialManager.clearCache()
             do {
                 let result = try await performFetch(forceTokenRefresh: true)
                 return result
             } catch APIError.tokenExpired {
-                // Still expired after refresh - mark as known expired to avoid future prompts
+                // Still expired after keychain refresh — give up
                 tokenKnownExpired = true
                 throw APIError.tokenExpired
             }

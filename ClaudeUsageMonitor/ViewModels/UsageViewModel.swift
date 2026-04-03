@@ -57,11 +57,9 @@ class UsageViewModel: ObservableObject {
         }
     }
 
-    /// Manual refresh - resets token state to allow retry after token expiry
+    /// Manual refresh - resets expired flag so the normal flow can retry
     func manualRefresh() async {
         await api.resetTokenState()
-        await CredentialManager.shared.clearCache()
-        await CredentialManager.shared.resetThrottle()
         await refresh()
     }
 

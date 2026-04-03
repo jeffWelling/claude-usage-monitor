@@ -30,12 +30,24 @@ actor CredentialManager {
     private var cachedToken: String?
     private var lastKeychainAccess: Date?
     private let keychainThrottleSeconds: TimeInterval = 30  // Minimum time between keychain prompts
+    private let tokenCachePath: String = {
+        let dir = NSHomeDirectory() + "/.claude-usage-monitor"
+        try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+        return dir + "/cached-token"
+    }()
 
-    private init() {}
+    private init() {
+        // Load disk-cached token synchronously on init so we can skip keychain on startup
+        if let token = try? String(contentsOfFile: tokenCachePath, encoding: .utf8),
+           !token.isEmpty {
+            cachedToken = token
+        }
+    }
 
     /// Clear the cached token - forces next fetch to go to keychain
     func clearCache() {
         cachedToken = nil
+        clearTokenFromDisk()
     }
 
     /// Reset throttle to allow immediate keychain access (for manual refresh)
@@ -61,8 +73,34 @@ actor CredentialManager {
         lastKeychainAccess = Date()
         let token = try fetchTokenFromKeychain()
         cachedToken = token
+        saveTokenToDisk(token)
         return token
     }
+
+    // MARK: - Disk Cache
+
+    private func saveTokenToDisk(_ token: String) {
+        try? token.write(toFile: tokenCachePath, atomically: true, encoding: .utf8)
+        // Restrict file permissions to owner-only (0600)
+        try? FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: tokenCachePath
+        )
+    }
+
+    private func loadTokenFromDisk() -> String? {
+        guard let token = try? String(contentsOfFile: tokenCachePath, encoding: .utf8),
+              !token.isEmpty else {
+            return nil
+        }
+        return token
+    }
+
+    private func clearTokenFromDisk() {
+        try? FileManager.default.removeItem(atPath: tokenCachePath)
+    }
+
+    // MARK: - Keychain
 
     private func fetchTokenFromKeychain() throws -> String {
         let query: [String: Any] = [
